@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apprentissage Amusant pour Enfants</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-yellow-50 text-gray-800 font-sans">
+<!-- Header -->
+<header class="bg-gradient-to-r from-pink-400 to-yellow-500 text-white text-center py-10 shadow-xl rounded-b-3xl">
+    <div class="max-w-screen-lg mx-auto px-4">
+        <h1 class="text-5xl font-extrabold mb-2">🎨 Apprentissage Amusant pour Enfants 🎉</h1>
+        <p class="text-xl mt-2 opacity-90">Libérez la créativité et le potentiel d'apprentissage de votre enfant ! 🚀</p>
+    </div>
+</header>
+
+<!-- Navigation -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-screen-lg mx-auto px-6 py-4 flex justify-around items-center rounded-b-2xl">
+        {% if user.is_authenticated %}
+            {% if user.role == 'parent' %}
+                <a href="#progress" class="nav-link text-blue-500 hover:text-blue-700">Progrès</a>
+                <a href="#childinfo" class="nav-link text-blue-500 hover:text-blue-700">Infos Enfant</a>
+                {% if not user.children_users.all %}
+                    <a href="#" id="link-child-btn" class="nav-link text-blue-500 hover:text-blue-700">🔗 Lier un Enfant</a>
+                {% endif %}
+                <a href="{% url 'parent_profile' %}" class="nav-link text-blue-500 hover:text-blue-700">Profil Parent</a>
+            {% elif user.role == 'child' %}
+                <a href="{% url 'cat' %}" class="nav-link text-blue-500 hover:text-blue-700">📚 Apprentissage</a>
+                <a href="#games" class="nav-link text-blue-500 hover:text-blue-700">🎮 Jeux</a>
+                <a href="{% url 'cat' %}" class="nav-link text-blue-500 hover:text-blue-700">Mon Profil</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?');" class="nav-link text-red-500 hover:text-red-700">Déconnexion</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-link text-blue-500 hover:text-blue-700">Connexion</a>
+            <a href="{% url 'sign' %}" class="nav-link text-blue-500 hover:text-blue-700">Inscription</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Modal for Linking Child -->
+<div id="link-child-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-6 rounded-lg shadow-xl w-96 text-center">
+        <h2 class="text-lg font-bold text-gray-700 mb-4">🔗 Lier un Enfant</h2>
+        <p class="text-sm text-gray-600 mb-4">Veuillez entrer le code d'invitation de votre enfant.</p>
+        
+        <form method="POST" action="{% url 'link_child' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="text" name="invitation_code" placeholder="Entrez le code ici" required
+                class="w-full p-2 border rounded-md text-center text-lg">
+            
+            <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600">Lier</button>
+        </form>
+
+        <button id="close-modal" class="mt-4 text-gray-500 hover:text-gray-700">Annuler</button>
+    </div>
+</div>
+
+<!-- Sections pour Enfants -->
+<section id="kids-content" class="max-w-screen-lg mx-auto px-4 py-12">
+    {% if user.role == 'child' %}
+        <h2 class="text-3xl font-bold text-center text-pink-600 mb-8">🎉 Bienvenue, Petit Explorateur ! 🎉</h2>
+    {% else %}
+        <h2 class="text-3xl font-bold text-center text-pink-600 mb-8">🎉 Espace Enfants 🎉</h2>
+    {% endif %}
+
+    <!-- Section Apprentissage -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-2xl font-semibold text-purple-500 mb-4">📚 Apprentissage</h3>
+        <p class="text-gray-600">Découvre des leçons amusantes pour apprendre les mathématiques, la lecture et bien plus encore !</p>
+        <a href="#learning" class="mt-4 inline-block bg-purple-500 text-white px-4 py-2 rounded-full hover:bg-purple-600">Commencer</a>
+    </div>
+
+    <!-- Section Jeux -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-2xl font-semibold text-green-500 mb-4">🎮 Jeux</h3>
+        <p class="text-gray-600">Joue à des jeux éducatifs qui te feront rire et apprendre en même temps !</p>
+        <a href="#games" class="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600">Jouer Maintenant</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white text-center py-10 mt-24 rounded-t-3xl">
+    <div class="max-w-screen-lg mx-auto px-4">
+        <p class="text-gray-300 mb-4">Explorez, Apprenez et Grandissez avec Apprentissage Amusant pour Enfants</p>
+        <nav class="footer-nav">
+            <a href="#about" class="footer-link text-blue-400 hover:text-blue-600">À Propos de Nous</a>
+            <a href="#contact" class="footer-link text-blue-400 hover:text-blue-600">Contactez-Nous</a>
+            <a href="#" class="footer-link text-blue-400 hover:text-blue-600">Politique de Confidentialité</a>
+        </nav>
+        <p class="mt-6 text-sm opacity-70">©2025 Apprentissage Amusant pour Enfants. Tous droits réservés.</p>
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('link-child-modal');
+    var btn = document.getElementById('link-child-btn');
+    var closeBtn = document.getElementById('close-modal');
+
+    // Open the modal when the "Lier un Enfant" button is clicked
+    if (btn) {
+        btn.onclick = function(event) {
+            event.preventDefault();
+            modal.style.display = 'flex';
+        };
+    }
+
+    // Close the modal when the "Annuler" button is clicked
+    if (closeBtn) {
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        };
+    }
+
+    // Close the modal if user clicks outside the modal
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+});
+</script>
+
+</body>
+</html>

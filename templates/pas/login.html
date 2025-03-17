@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+  /* General Form Styling */
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    background: white;
+  }
+
+  h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  input.form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+
+  button.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    transition: 0.3s;
+    padding: 10px 15px;
+    border-radius: 8px;
+  }
+
+  button.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #003580);
+  }
+
+  /* Forgot Password Link */
+  a.text-danger {
+    transition: 0.3s;
+  }
+
+  a.text-danger:hover {
+    color: #b30000 !important;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .card {
+      padding: 20px;
+    }
+  }
+</style>
+
+<div class="bg-light py-5">
+  <div class="container">
+    <div class="text-center">
+      <div class="row my-3">
+        <div class="col-sm-6 offset-sm-3">
+          <div class="card">
+            <h3>Login</h3>
+            <form action="" novalidate method="post">
+              {% csrf_token %}
+
+              <!-- Form Fields -->
+              {% for fm in form %}
+                <div class="form-group mb-3">
+                  {{ fm.label_tag }}
+                  {{ fm }}
+                  <small class="text-danger">{{ fm.errors }}</small>
+                </div>
+              {% endfor %}
+              
+              <!-- Forgot Password Link -->
+              <div class="mb-3">
+                <small class="text-danger">
+                  <a href="">Forgot password?</a>
+                </small>
+              </div>
+
+              <!-- Submit Button -->
+              <button type="submit" class="btn btn-primary w-100">Login</button>
+
+              <!-- Sign Up Link -->
+              <div class="text-center text-primary fw-bold mt-3">
+                <small>New here? <a href="{% url 'sign' %}" class="text-danger">Sign up here</a></small>
+              </div>
+            </form>
+          </div>
+        </div> <!-- End of col -->
+      </div> <!-- End of row -->
+    </div> <!-- End of text-center -->
+  </div> <!-- End of container -->
+</div> <!-- End of bg-light -->
+{% endblock %}

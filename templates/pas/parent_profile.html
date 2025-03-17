@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 style="color: #1865f2; text-align: center;">Parent Profile</h2>
+
+    <!-- Display Messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="margin: 10px auto; max-width: 600px; padding: 10px; border-radius: 4px; text-align: center;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Children List -->
+    <div class="features" style="display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px;">
+        {% if children %}
+            {% for child in children %}
+                <div class="feature" style="width: min(100%, 350px); background: white; border-radius: .5em; padding: .8em; box-shadow: rgba(99,99,99,.2) 0 2px 8px; text-align: left;">
+                    <h3 style="color: #1865f2;">{{ child.username }}</h3>
+                    <p><strong>Name:</strong> {{ child.first_name }} {{ child.last_name }}</p>
+                    <p><strong>Email:</strong> {{ child.email }}</p>
+                    <p><strong>Age:</strong> {{ child.age }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align: center; color: #666;">No children linked to your account yet. Use the "Link Child" option to add your children.</p>
+        {% endif %}
+    </div>
+
+    <!-- Game Section -->
+    <section id="game-section" class="py-20 text-center bg-gradient-to-r from-purple-300 to-pink-300 rounded-xl">
+        <div class="max-w-screen-md mx-auto px-6">
+            <h2 class="text-4xl font-extrabold text-white mb-4">Let's Play!</h2>
+            <p class="text-xl text-white mb-6">Ready to start a fun adventure? Click below to play now!</p>
+            <a href="#game" class="btn-hero text-white bg-green-500 hover:bg-green-600 font-bold py-3 px-8 rounded-lg shadow-lg transition duration-300">
+                Play Now
+            </a>
+        </div>
+    </section>
+
+    <!-- Game Area -->
+    <section id="game-area" class="py-20 bg-white rounded-xl shadow-lg">
+        <div class="max-w-screen-md mx-auto px-6">
+            <h2 class="text-3xl font-semibold text-center text-blue-500 mb-4">Welcome to Your Adventure!</h2>
+            <p class="text-center text-gray-700 mb-8">Choose your game and have fun!</p>
+
+            <div class="game-options grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Game Option 1 -->
+                <div class="game-card p-4 border-2 rounded-lg shadow-md text-center hover:shadow-xl transition duration-300">
+                    <img src="game1-thumbnail.jpg" alt="Game 1" class="mb-4 rounded-md">
+                    <h3 class="text-xl font-semibold text-blue-500">Trivia Quiz</h3>
+                    <p class="text-gray-600">Test your knowledge with fun trivia questions!</p>
+                    <a href="/game/trivia" class="text-green-500 hover:text-green-600 font-bold mt-4 block">Play Now</a>
+                </div>
+                <!-- Game Option 2 -->
+                <div class="game-card p-4 border-2 rounded-lg shadow-md text-center hover:shadow-xl transition duration-300">
+                    <img src="game2-thumbnail.jpg" alt="Game 2" class="mb-4 rounded-md">
+                    <h3 class="text-xl font-semibold text-blue-500">Puzzle Challenge</h3>
+                    <p class="text-gray-600">Solve puzzles and have fun!</p>
+                    <a href="/game/puzzle" class="text-green-500 hover:text-green-600 font-bold mt-4 block">Play Now</a>
+                </div>
+                <!-- Game Option 3 -->
+                <div class="game-card p-4 border-2 rounded-lg shadow-md text-center hover:shadow-xl transition duration-300">
+                    <img src="game3-thumbnail.jpg" alt="Game 3" class="mb-4 rounded-md">
+                    <h3 class="text-xl font-semibold text-blue-500">Memory Match</h3>
+                    <p class="text-gray-600">Train your brain with memory games!</p>
+                    <a href="/game/memory" class="text-green-500 hover:text-green-600 font-bold mt-4 block">Play Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Back Button -->
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'home' %}" class="btn-hero" style="background: #1865f2; color: white; padding: .6em 1.5em; border-radius: 25px; text-decoration: none; font-weight: bold;">Back to Home</a>
+    </div>
+</div>
+
+{% endblock %}
+
+<style>
+    .btn-hero {
+        @apply inline-block bg-orange-500 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-colors duration-300;
+        @apply hover:bg-orange-600 hover:shadow-xl;
+    }
+
+    .game-card {
+        @apply bg-white p-6 shadow-lg rounded-2xl transition-shadow duration-300 hover:shadow-2xl;
+    }
+
+    .game-card img {
+        @apply w-full h-auto rounded-lg;
+    }
+
+    .game-card a {
+        @apply mt-4 text-green-600 font-bold transition-all duration-300;
+        @apply hover:text-green-700;
+    }
+
+    .game-options {
+        @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8;
+    }
+</style>
+
+<script>
+    // Display Loading Screen
+    document.getElementById("loading-screen").style.display = "flex";
+
+    // Simulate Game Loading
+    setTimeout(function() {
+        document.getElementById("loading-screen").style.display = "none";
+    }, 2000); // Hide after 2 seconds
+</script>
+
+<!-- Fun Loading Screen (Optional) -->
+<div id="loading-screen" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 hidden">
+    <div class="text-center text-white">
+        <div class="loader"></div>
+        <p class="mt-4">Loading your adventure...</p>
+    </div>
+</div>

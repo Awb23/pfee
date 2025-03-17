@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} - Niveau {{ level }} - Jeu d'Orthographe{% endblock %}
+
+{% block content %}
+<div class="container mx-auto my-8 px-4">
+  <!-- Header Section -->
+  <div class="text-center mb-6">
+    <div class="text-5xl font-extrabold text-blue-500 mb-4 animate-bounce">{{ category.name }}</div>
+    <p class="text-lg text-gray-600 bg-yellow-100 p-3 rounded-full shadow-md">
+      Ton score : <span class="bg-blue-400 text-white px-3 py-1 rounded-full">{{ user_score }}</span> |
+      Progrès : <span class="text-green-500 font-bold">{{ completed_words }}/{{ total_words }}</span>
+    </p>
+  </div>
+
+  <!-- Main Content -->
+  {% if current_word %}
+    <div class="flex justify-center">
+      <div class="w-full max-w-md">
+        <div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-blue-300">
+          <h3 class="text-3xl font-bold text-center text-purple-600 mb-6">{{ current_word.name }}</h3>
+          {% if current_word.image %}
+            <img src="{{ current_word.image.url }}" class="w-full max-h-64 object-contain rounded-xl mb-6 border-4 border-yellow-400 shadow-md" alt="{{ current_word.name }}">
+          {% else %}
+            <div class="w-full h-48 bg-blue-100 rounded-xl mb-6 flex items-center justify-center text-blue-600 border-4 border-blue-400 shadow-md">
+              <span class="text-2xl font-semibold">✨ {{ current_word.name }} ✨</span>
+            </div>
+          {% endif %}
+          <form method="POST" id="spelling-form" class="space-y-6">
+            {% csrf_token %}
+            <div class="flex items-center bg-gray-100 p-2 rounded-full border-2 border-blue-400">
+              <input type="text" id="user-answer" name="user_answer" class="w-full p-3 text-lg bg-transparent focus:outline-none placeholder-gray-400" placeholder="Écris ta réponse ici" required>
+              <button type="button" id="speak" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-all duration-200">
+                <i class="fas fa-volume-up"></i>
+              </button>
+            </div>
+            <input type="hidden" id="time_taken" name="time_taken" value="0">
+            <button type="submit" name="next_input" class="w-full bg-green-500 text-white py-3 rounded-full text-lg font-bold hover:bg-green-600 transition-all duration-300">Envoyer</button>
+          </form>
+          {% if prediction or completion %}
+            <div class="mt-4 p-4 bg-blue-100 rounded-lg text-blue-800 text-center">
+              <p>Suggestion de mot suivant : <span class="font-bold">{{ prediction|default:"Aucune" }}</span></p>
+              <p>Complétion suggérée : <span class="font-bold">{{ completion|default:"Aucune" }}</span></p>
+            </div>
+          {% endif %}
+          {% if message %}
+            <div class="mt-4 p-4 rounded-lg {% if 'Correct' in message or 'Trop' in message %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %} text-center">
+              <p class="font-bold text-lg">{{ message }}</p>
+            </div>
+          {% endif %}
+          {% if attempts > 0 %}
+            <p class="mt-2 text-gray-600 text-center">Tentatives : {{ attempts }}/3</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% else %}
+    {% if success_percentage >= 80 %}
+      <div class="bg-green-100 p-6 rounded-2xl text-center shadow-lg">
+        <span class="text-3xl text-green-600 font-bold">🎉 Bravo ! Tout est terminé ! 🎉</span>
+        <form method="POST" class="mt-4">
+          {% csrf_token %}
+          <button type="submit" name="next_category" class="bg-purple-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-purple-600 transition-all duration-300">Passer à la catégorie suivante</button>
+        </form>
+      </div>
+    {% else %}
+      <div class="bg-red-100 p-6 rounded-2xl text-center shadow-lg">
+        <span class="text-3xl text-red-600 font-bold">Pas encore ! 😔</span>
+        <p class="mt-2 text-lg text-red-800">Tu n'as atteint que {{ success_percentage }}% de succès. Tu dois avoir au moins 80% pour passer !</p>
+        <form method="POST" class="mt-4">
+          {% csrf_token %}
+          <button type="submit" name="next_category" class="bg-gray-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-600 transition-all duration-300">Réessayer ou passer</button>
+        </form>
+      </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+<!-- Timer and Speech Script -->
+{% if current_word %}
+  <script>
+    let timeLeft = 60;
+    const timeTakenInput = document.getElementById('time_taken');
+
+    const timer = setInterval(() => {
+      if (timeLeft > 0) {
+        timeLeft--;
+        timeTakenInput.value = 60 - timeLeft;
+      } else {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    document.getElementById('spelling-form').addEventListener('submit', function() {
+      clearInterval(timer);
+    });
+
+    document.getElementById('speak').addEventListener('click', () => {
+      const utterance = new SpeechSynthesisUtterance("{{ current_word.name }}");
+      const voices = window.speechSynthesis.getVoices();
+      const frenchVoice = voices.find(voice => voice.lang.includes('fr'));
+      if (frenchVoice) {
+        utterance.voice = frenchVoice;
+      }
+      utterance.lang = 'fr-FR';
+      window.speechSynthesis.speak(utterance);
+    });
+
+    window.speechSynthesis.onvoiceschanged = () => {
+      const voices = window.speechSynthesis.getVoices();
+      console.log('Voices loaded:', voices);
+    };
+  </script>
+{% endif %}
+{% endblock %}

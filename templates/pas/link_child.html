@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Link a Child</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="invitation_code" class="form-label">Invitation Code</label>
+            <input type="text" class="form-control" id="invitation_code" name="invitation_code" placeholder="Enter your child's invitation code">
+        </div>
+        <button type="submit" class="btn btn-primary">Link Child</button>
+    </form>
+</div>
+{% endblock %}

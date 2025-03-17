@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Kids Sign Up Adventure</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto flex justify-center items-center min-h-screen bg-gradient-to-r from-yellow-200 via-pink-200 to-blue-200">
+  <div class="md:w-1/2">
+    <div class="bg-white shadow-2xl p-8 rounded-3xl border-4 border-purple-400">
+      <h3 class="text-center text-4xl font-bold text-purple-600 mb-6 animate-bounce">Join the Fun!</h3>
+
+      {% if messages %}
+  {% for message in messages %}
+    <div class="rounded-full p-4 mb-4 flex items-center justify-center
+    {% if message.tags == 'success' %} bg-green-200 text-green-800 border-2 border-green-400 
+    {% else %} bg-red-200 text-red-800 border-2 border-red-400 {% endif %}" role="alert">
+      <i class="fas fa-star mr-2"></i> {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+
+      <div class="text-center mb-6">
+        <p class="font-bold text-xl text-purple-700">Hop in with:</p>
+        <button type="button" class="bg-red-500 hover:bg-red-600 text-white font-bold rounded-full py-3 px-6 mx-1 mt-2 transform hover:scale-110 transition-transform duration-200">
+          <i class="fab fa-google mr-2"></i> Google Magic
+        </button>
+      </div>
+
+      <form action="{% url 'sign' %}" novalidate method="post">
+        {% csrf_token %}
+
+        {% for fm in form %}
+        <div class="mb-6 relative">
+          <label for="{{ fm.id_for_label }}" class="block text-purple-700 text-lg font-bold mb-2">{{ fm.label }}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span class="text-2xl text-purple-500">
+                {% if fm.name == "username" %}
+                  <i class="fas fa-rocket"></i>
+                {% elif fm.name == "email" %}
+                  <i class="fas fa-paper-plane"></i>
+                {% elif fm.name == "first_name" %}
+                  <i class="fas fa-smile"></i>
+                {% elif fm.name == "last_name" %}
+                  <i class="fas fa-star"></i>
+                {% elif fm.name == "role" %}
+                  <i class="fas fa-crown"></i>
+                {% elif fm.name == "age" %}
+                  <i class="fas fa-birthday-cake"></i>
+                {% elif fm.name == "password1" or fm.name == "password2" %}
+                  <i class="fas fa-magic"></i>
+                {% endif %}
+              </span>
+            </div>
+            {% if fm.name == "role" %}
+              <select 
+                name="{{ fm.name }}" 
+                id="{{ fm.id_for_label }}" 
+                class="w-full pl-12 py-3 rounded-full border-2 border-purple-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-200 text-lg bg-white appearance-none"
+                {% if fm.field.required %}required{% endif %}
+              >
+                {% for value, label in form.fields.role.choices %}
+                  <option value="{{ value }}" {% if fm.value == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            {% else %}
+              <input 
+                type="{{ fm.field.widget.input_type|default:'text' }}" 
+                name="{{ fm.name }}" 
+                id="{{ fm.id_for_label }}" 
+                class="w-full pl-12 py-3 rounded-full border-2 border-purple-300 focus:border-purple-500 focus:ring-4 focus:ring-purple-200 text-lg" 
+                value="{{ fm.value|default:'' }}"
+                {% if fm.field.required %}required{% endif %}
+              >
+            {% endif %}
+          </div>
+          <small class="text-red-400 absolute left-0 -bottom-5 text-sm font-bold">{{ fm.errors|striptags }}</small>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="bg-green-400 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-full focus:outline-none focus:ring-4 focus:ring-green-200 w-full text-xl transform hover:scale-105 transition-transform duration-200">
+          Start Your Adventure!
+        </button>
+
+        <div class="text-center text-purple-600 font-bold mt-4">
+          <small class="text-lg">
+            Got an account already?
+            <a class="text-pink-500 hover:text-pink-700 text-decoration-none" href="{% url 'login' %}">Jump in!</a>
+          </small>
+        </div>
+
+        {% if form.non_field_errors %}
+          {% for er in form.non_field_errors %}
+            <p class="rounded-full p-4 mt-4 bg-red-200 text-red-800 border-2 border-red-400 text-center" role="alert">
+              <i class="fas fa-exclamation-circle mr-2"></i> {{ er }}
+            </p>
+          {% endfor %}
+        {% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

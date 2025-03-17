@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Word</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #eef2f3;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        h1 {
+            color: #444444;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .word {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px;
+        }
+
+        .result {
+            margin-top: 20px;
+            color: {{ result_color }};
+            font-size: 18px;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #cccccc;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-top: 15px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        #audio-controls {
+            margin-top: 30px;
+        }
+
+        #recordBtn,
+        #playBtn {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        audio {
+            margin-top: 15px; 
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0; 
+                transform: translateY(-20px);
+            }
+            
+            to {
+                opacity: 1; 
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Learn the Letter:</h1>
+        <div class="word">{{ letter }}</div>
+
+        <!-- Form Section -->
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="inputWord" placeholder="Enter the word here">
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- Result Section -->
+        <div class="result">{{ result }}</div>
+
+        <!-- Audio Controls Section -->
+        <div id="audio-controls">
+            <button id="recordBtn" onclick="startRecording()">🎙️ Record Audio</button>
+            <button id="playBtn" onclick="playAudio()" disabled>▶️ Play Audio</button>
+            
+            <!-- Hidden Audio Element -->
+            <audio id="audio" controls style="display:none;"></audio>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let mediaRecorder; // MediaRecorder instance
+        let audioChunks = [];
+        let audioBlob, audioUrl;
+
+        // Start recording audio
+        function startRecording() {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+              navigator.mediaDevices.getUserMedia({ audio: true })
+                  .then(function(stream) {
+                      mediaRecorder = new MediaRecorder(stream);
+                      mediaRecorder.ondataavailable = function(event) {
+                          audioChunks.push(event.data);
+                      };
+                      mediaRecorder.onstop = function() {
+                          audioBlob = new Blob(audioChunks, { type:'audio/wav' });
+                          audioUrl = URL.createObjectURL(audioBlob);
+                          document.getElementById('playBtn').disabled = false; // Enable play button
+                      };
+                      mediaRecorder.start();
+                      document.getElementById('recordBtn').textContent = "⏹️ Stop Recording";
+                      document.getElementById('recordBtn').setAttribute('onclick', 'stopRecording()');
+                  });
+          } else {
+              alert('Audio recording is not supported in this browser.');
+          }
+      }
+
+      // Stop recording
+      function stopRecording() {
+          mediaRecorder.stop();
+          document.getElementById('recordBtn').textContent = "🎙️ Start Recording";
+          document.getElementById('recordBtn').setAttribute('onclick', 'startRecording()');
+      }
+
+      // Play recorded audio
+      function playAudio() {
+          const audio = document.getElementById('audio');
+          audio.src = audioUrl; // Set the source of the audio element
+          audio.style.display = 'block'; // Make it visible
+          audio.play();
+      }
+    </script>
+</body>
+</html>

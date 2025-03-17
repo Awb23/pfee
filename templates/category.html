@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Catégories - Jeu d'Orthographe{% endblock %}
+
+{% block content %}
+  <!-- Header Section -->
+  <header class="bg-gradient-to-r from-purple-400 to-pink-500 text-white text-center py-12 rounded-b-3xl shadow-lg mb-8">
+    <div class="container mx-auto px-4">
+      <h1 class="text-5xl font-extrabold mb-4">Jeu d'Orthographe pour Enfants</h1>
+      <p class="text-xl opacity-80">Amusez-vous en apprenant et en améliorant votre orthographe !</p>
+    </div>
+  </header>
+
+  <div class="container mx-auto my-8 px-4">
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-extrabold text-blue-600">Choisissez une Catégorie</h1>
+      <p class="text-lg text-gray-700">Sélectionnez un thème et commencez à jouer !</p>
+    </div>
+
+    {% if not categories %}
+      <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative shadow-md" role="alert">
+        <strong class="font-bold">Info!</strong>
+        <span class="block sm:inline">Aucune catégorie disponible pour le moment.</span>
+        <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+          <svg class="fill-current h-6 w-6 text-blue-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697L8.303 10l-3.029-2.651a1.2 1.2 0 0 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697L11.697 10l3.029 2.651a1.2 1.2 0 0 1 0 1.697z"/></svg>
+        </span>
+      </div>
+    {% else %}
+      <div class="flex justify-center">
+        <div class="w-full lg:w-10/12">
+          <div class="bg-white shadow-xl rounded-3xl overflow-hidden">
+            <div class="p-6">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for category in categories %}
+                  <div class="category-card transform transition-transform hover:scale-105 shadow-lg rounded-2xl bg-lime-100" data-category="{{ category.name }}">
+                    <div class="p-4 text-center">
+                      {% if category.image %}
+                        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="mx-auto rounded-full mb-3 w-20 h-20 object-cover border-4 border-lime-200">
+                      {% endif %}
+                      <h5 class="text-xl font-semibold text-blue-500 mb-2">{{ category.name }}</h5>
+                      <p class="text-sm text-gray-600 mb-1">
+                        Score: <span class="inline-block bg-teal-200 text-teal-800 rounded-full px-2 py-0.5 font-semibold">
+                          {% if user.is_authenticated and user_scores %}
+                            {% for score in user_scores %}
+                              {% if score.category.name == category.name %}
+                                {{ score.score }}
+                              {% endif %}
+                            {% empty %}
+                              0
+                            {% endfor %}
+                          {% else %}
+                            -
+                          {% endif %}
+                        </span>
+                      </p>
+                      <p class="text-sm text-gray-600">
+                        Statut:
+                        {% if category.is_locked %}
+                          <span class="inline-block bg-red-200 text-red-800 rounded-full px-2 py-0.5 font-semibold">Verrouillé</span>
+                        {% else %}
+                          <span class="inline-block bg-green-200 text-green-800 rounded-full px-2 py-0.5 font-semibold">Déverrouillé</span>
+                        {% endif %}
+                      </p>
+                      <div class="mt-4">
+                        {% if not category.is_locked %}
+                          <a href="{% url 'level_view' category.name 1 %}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full inline-flex items-center">
+                            <i class="fas fa-play mr-2"></i> Commencer
+                          </a>
+                        {% else %}
+                          <button class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-full cursor-not-allowed inline-flex items-center" disabled>
+                            <i class="fas fa-lock mr-2"></i> Verrouillé
+                          </button>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section pour afficher les réponses si la catégorie est complétée -->
+      {% if user.is_authenticated and completed_categories %}
+        <div class="flex justify-center mt-10">
+          <div class="w-full lg:w-10/12">
+            <div class="bg-lime-100 shadow-xl rounded-3xl overflow-hidden">
+              <div class="p-6">
+                <h3 class="text-2xl font-bold text-green-600 mb-6">Vos Réponses Complétées</h3>
+                {% for completed_category in completed_categories %}
+                  <div class="mb-4 rounded-lg border border-gray-200 bg-white">
+                    <div class="bg-blue-300 text-white p-3 rounded-t-lg">
+                      {{ completed_category.name }}
+                    </div>
+                    <div class="p-4">
+                      <ul class="list-none">
+                        {% for progress in user_progress %}
+                          {% if progress.word.category.name == completed_category.name %}
+                            <li class="py-2 border-b border-gray-200 last:border-b-0 flex justify-between items-center">
+                              <span>{{ progress.word.name }}</span>
+                              <span class="bg-gray-200 text-gray-700 rounded-full px-2 py-0.5 text-sm">Temps: {{ progress.time_taken }}s</span>
+                            </li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <style>
+    .category-grid {
+      /* display: grid; - handled by Tailwind grid classes */
+      /* grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); - handled by Tailwind grid classes */
+      gap: 20px; /* Handled by Tailwind gap-6 */
+    }
+    .category-card {
+      /* transition: transform 0.3s ease-in-out, box-shadow 0.3s ease; - handled by Tailwind transition classes */
+    }
+    .category-card:hover {
+      /* transform: scale(1.05); - handled by Tailwind transform classes */
+      /* box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); - handled by Tailwind shadow classes */
+    }
+    .card {
+      /* border: none; - Tailwind removes default borders */
+      /* border-radius: 10px; - handled by Tailwind rounded-2xl/3xl classes */
+    }
+    .card-title {
+      /* font-size: 1.25rem; - handled by Tailwind text-xl/2xl classes */
+    }
+    .btn-success {
+      /* background-color: #28a745; - handled by Tailwind bg-green-500/700 classes */
+      /* border: none; - Tailwind removes default borders */
+    }
+    .btn-success:hover {
+      /* background-color: #218838; - handled by Tailwind bg-green-700 classes */
+    }
+    .btn-secondary:disabled {
+      /* opacity: 0.6; - handled by Tailwind opacity-60 (or custom opacity) if needed */
+      /* cursor: not-allowed; - handled by Tailwind cursor-not-allowed */
+    }
+    .list-group-item {
+      /* background-color: #f8f9fa; - handled by Tailwind bg-gray-100/50 classes if needed */
+      /* border: none; - Tailwind removes default borders */
+    }
+    @media (max-width: 768px) {
+      .category-grid {
+        /* grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); - handled by Tailwind grid classes */
+      }
+      .card-title {
+        /* font-size: 1.1rem; - handled by Tailwind text-lg classes */
+      }
+      .btn-sm {
+        /* padding: 0.25rem 0.75rem; - handled by Tailwind py-2 px-3 or similar classes */
+        /* font-size: 0.85rem; - handled by Tailwind text-sm classes */
+      }
+    }
+    @media (max-width: 576px) {
+      .category-grid {
+        /* grid-template-columns: 1fr; - handled by Tailwind grid classes */
+      }
+      .card-title {
+        /* font-size: 1rem; - handled by Tailwind text-base classes */
+      }
+      .btn-sm {
+        /* padding: 0.2rem 0.5rem; - handled by Tailwind py-1 px-2 or similar classes */
+        /* font-size: 0.8rem; - handled by Tailwind text-xs classes */
+      }
+      .lead {
+        /* font-size: 1rem; - handled by Tailwind text-base classes */
+      }
+    }
+  </style>
+{% endblock %}
