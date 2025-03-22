@@ -1,10 +1,6 @@
 from django.db import models
 from PPFE.settings import AUTH_USER_MODEL
 
-      
-from django.db import models
-
-
 class Category(models.Model):
     name = models.CharField(max_length=12)  # A, B, C...
     description = models.CharField(max_length=100, blank=True)
@@ -20,6 +16,8 @@ class Word(models.Model):
         ('verb', 'Verb'),
         ('insan', 'Insan'),
         ('phrase', 'Phrase'),
+        ('dessin', 'Dessin'),
+        ('test', 'test'),
     )
     name = models.CharField(max_length=200)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -47,6 +45,7 @@ class UserProgress(models.Model):
     attempts = models.IntegerField(default=0)
     time_taken = models.FloatField(null=True)
     difficulty = models.FloatField(default=0.0)
+    
 
     def __str__(self):
         return f"{self.user.username} - {self.word or self.paragraph}"
@@ -61,3 +60,14 @@ class UserCategoryScore(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.category.name} - {self.score}"
+
+class UserProgressHistory(models.Model):
+    user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE)
+    word = models.ForeignKey(Word, null=True, blank=True, on_delete=models.CASCADE)
+    paragraph = models.ForeignKey(Paragraph, null=True, blank=True, on_delete=models.CASCADE)
+    correct_answer_date = models.DateTimeField(auto_now_add=True)
+    attempts = models.IntegerField(default=0)
+    time_taken = models.FloatField(null=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.word or self.paragraph} - {self.correct_answer_date}"

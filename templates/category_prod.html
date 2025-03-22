@@ -6,7 +6,7 @@
 <div class="container mx-auto my-8 px-4">
   <!-- Header Section -->
   <div class="text-center mb-6">
-    <div class="text-5xl font-extrabold text-blue-500 mb-4 animate-bounce">{{ category.name }}</div>
+    <div class="text-5xl font-extrabold text-blue-500 mb-4">{{ category.name }}</div>
     <p class="text-lg text-gray-600 bg-yellow-100 p-3 rounded-full shadow-md">
       Ton score : <span class="bg-blue-400 text-white px-3 py-1 rounded-full">{{ user_score }}</span> |
       Progrès : <span class="text-green-500 font-bold">{{ completed_words }}/{{ total_words }}</span>
@@ -15,101 +15,315 @@
 
   <!-- Main Content -->
   {% if current_word %}
-    <div class="flex justify-center">
-      <div class="w-full max-w-md">
-        <div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-blue-300">
-          <h3 class="text-3xl font-bold text-center text-purple-600 mb-6">{{ current_word.name }}</h3>
-          {% if current_word.image %}
-            <img src="{{ current_word.image.url }}" class="w-full max-h-64 object-contain rounded-xl mb-6 border-4 border-yellow-400 shadow-md" alt="{{ current_word.name }}">
-          {% else %}
-            <div class="w-full h-48 bg-blue-100 rounded-xl mb-6 flex items-center justify-center text-blue-600 border-4 border-blue-400 shadow-md">
-              <span class="text-2xl font-semibold">✨ {{ current_word.name }} ✨</span>
-            </div>
+  <div class="flex justify-center">
+    <div class="w-full max-w-md">
+      <div class="bg-white p-6 rounded-3xl shadow-xl border-4 border-blue-300">
+        <h3 class="text-3xl font-bold text-center text-purple-600 mb-6">{{ current_word.name }}</h3>
+        {% if current_word.image %}
+        <img src="{{ current_word.image.url }}" class="w-full max-h-64 object-contain rounded-xl mb-6 border-4 border-yellow-400 shadow-md" alt="{{ current_word.name }}">
+        {% else %}
+        <div class="w-full h-48 bg-blue-100 rounded-xl mb-6 flex items-center justify-center text-blue-600 border-4 border-blue-400 shadow-md">
+          <span class="text-2xl font-semibold">✨ {{ current_word.name }} ✨</span>
+        </div>
+        {% endif %}
+
+        <!-- Drawing Canvas for "dessin" type -->
+        {% if current_word.type == 'dessin' %}
+        <div class="mb-6">
+          <canvas id="drawing-canvas" class="w-full h-64 bg-white rounded-xl border-4 border-blue-400 shadow-md"></canvas>
+          <div class="mt-2 flex justify-center space-x-4">
+            <button type="button" id="clear-canvas" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition-all duration-200">
+              <i class="fas fa-eraser"></i> Effacer
+            </button>
+            <button type="button" id="save-drawing" class="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-all duration-200">
+              <i class="fas fa-save"></i> Enregistrer
+            </button>
+          </div>
+          <input type="hidden" id="drawing-data" name="drawing_data">
+        </div>
+        {% else %}
+        <!-- Text and Audio Input for non-"dessin" types -->
+        <form method="POST" enctype="multipart/form-data" id="word-form" class="space-y-6">
+          {% csrf_token %}
+          <div class="flex items-center bg-gray-100 p-2 rounded-full border-2 border-blue-400">
+            <input type="text" id="user-answer" name="user_answer" class="w-full p-3 text-lg bg-transparent focus:outline-none placeholder-gray-400" placeholder="Écris ta réponse ici" required>
+            <button type="button" id="speak" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-all duration-200">
+              <i class="fas fa-volume-up"></i>
+            </button>
+          </div>
+
+          <!-- Audio recording controls -->
+          <div class="mt-4 flex items-center justify-between">
+            <button type="button" id="record-audio" class="bg-red-500 text-white p-3 rounded-full hover:bg-red-600 transition-all duration-200">
+              <i class="fas fa-microphone"></i> Enregistrer
+            </button>
+            <button type="button" id="stop-audio" class="bg-gray-500 text-white p-3 rounded-full hover:bg-gray-600 transition-all duration-200" disabled>
+              <i class="fas fa-stop"></i> Arrêter
+            </button>
+            <div id="recording-status" class="text-center text-sm text-gray-600"></div>
+          </div>
+
+          <!-- Audio playback -->
+          <audio id="audio-playback" controls class="mt-2 w-full hidden"></audio>
+          <input type="hidden" id="audio-data" name="audio_data">
+          
+          <!-- Time tracking hidden field -->
+          <input type="hidden" name="time_taken" id="time-taken" value="0">
+          
+          <input type="hidden" name="next_input" value="1">
+          <button type="submit" class="w-full bg-green-500 text-white py-3 rounded-full text-lg font-bold hover:bg-green-600 transition-all duration-300">Envoyer</button>
+        </form>
+        {% endif %}
+
+        <!-- Feedback display -->
+        <div id="feedback-section" class="mt-6 p-4 bg-blue-50 rounded-xl shadow-lg">
+          {% if text_feedback %}
+          <div class="mb-4 p-3 bg-white rounded-lg border-l-4 border-blue-500">
+            <h4 class="font-bold text-blue-700 text-lg">📝 Feedback sur votre texte :</h4>
+            <p class="text-blue-600 text-base">{{ text_feedback }}</p>
+          </div>
           {% endif %}
-          <form method="POST" id="spelling-form" class="space-y-6">
-            {% csrf_token %}
-            <div class="flex items-center bg-gray-100 p-2 rounded-full border-2 border-blue-400">
-              <input type="text" id="user-answer" name="user_answer" class="w-full p-3 text-lg bg-transparent focus:outline-none placeholder-gray-400" placeholder="Écris ta réponse ici" required>
-              <button type="button" id="speak" class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-all duration-200">
-                <i class="fas fa-volume-up"></i>
-              </button>
-            </div>
-            <input type="hidden" id="time_taken" name="time_taken" value="0">
-            <button type="submit" name="next_input" class="w-full bg-green-500 text-white py-3 rounded-full text-lg font-bold hover:bg-green-600 transition-all duration-300">Envoyer</button>
-          </form>
-          {% if prediction or completion %}
-            <div class="mt-4 p-4 bg-blue-100 rounded-lg text-blue-800 text-center">
-              <p>Suggestion de mot suivant : <span class="font-bold">{{ prediction|default:"Aucune" }}</span></p>
-              <p>Complétion suggérée : <span class="font-bold">{{ completion|default:"Aucune" }}</span></p>
-            </div>
+          
+          {% if audio_enabled and request.method == "POST" %}
+          <div class="mb-4 p-3 bg-white rounded-lg border-l-4 border-purple-500">
+            <h4 class="font-bold text-purple-700 text-lg">🎙️ Feedback sur votre prononciation :</h4>
+            <p class="text-purple-600 text-base">
+              {% if audio_feedback %}
+                {{ audio_feedback }}
+              {% else %}
+                Aucun feedback audio disponible.
+              {% endif %}
+            </p>
+          </div>
           {% endif %}
-          {% if message %}
-            <div class="mt-4 p-4 rounded-lg {% if 'Correct' in message or 'Trop' in message %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %} text-center">
-              <p class="font-bold text-lg">{{ message }}</p>
+          
+          {% if similarity_score is not None %}
+          <div class="mt-4">
+            <h4 class="font-bold text-gray-700 text-lg">Score de similarité : {{ similarity_score|floatformat:2 }}</h4>
+            <div class="w-full bg-gray-200 rounded-full h-4 mt-2">
+              <div class="bg-gradient-to-r from-blue-400 to-green-500 h-4 rounded-full transition-all duration-300" style="width:{{ similarity_score|floatformat:'0' }}%;"></div>
             </div>
+          </div>
           {% endif %}
-          {% if attempts > 0 %}
-            <p class="mt-2 text-gray-600 text-center">Tentatives : {{ attempts }}/3</p>
+          
+          {% if not text_feedback and not audio_feedback and similarity_score is None %}
+          <p class="text-gray-500 text-center">Aucun feedback disponible. Essayez de soumettre une réponse !</p>
           {% endif %}
         </div>
+        
+        {% if message %}
+        <div class="mt-4 p-4 rounded-lg {% if 'Correct' in message %}bg-green-200 text-green-800{% else %}bg-red-200 text-red-800{% endif %} text-center">
+          <p class="font-bold text-lg">{{ message }}</p>
+        </div>
+        {% endif %}
+        
+        {% if attempts > 0 %}
+        <p class="mt-2 text-gray-600 text-center">Tentatives : {{ attempts }}/3</p>
+        {% endif %}
       </div>
     </div>
+  </div>
   {% else %}
-    {% if success_percentage >= 80 %}
-      <div class="bg-green-100 p-6 rounded-2xl text-center shadow-lg">
-        <span class="text-3xl text-green-600 font-bold">🎉 Bravo ! Tout est terminé ! 🎉</span>
-        <form method="POST" class="mt-4">
-          {% csrf_token %}
-          <button type="submit" name="next_category" class="bg-purple-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-purple-600 transition-all duration-300">Passer à la catégorie suivante</button>
-        </form>
-      </div>
-    {% else %}
-      <div class="bg-red-100 p-6 rounded-2xl text-center shadow-lg">
-        <span class="text-3xl text-red-600 font-bold">Pas encore ! 😔</span>
-        <p class="mt-2 text-lg text-red-800">Tu n'as atteint que {{ success_percentage }}% de succès. Tu dois avoir au moins 80% pour passer !</p>
-        <form method="POST" class="mt-4">
-          {% csrf_token %}
-          <button type="submit" name="next_category" class="bg-gray-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-600 transition-all duration-300">Réessayer ou passer</button>
-        </form>
-      </div>
-    {% endif %}
+  {% if success_percentage >= 80 %}
+  <div class="bg-green-100 p-6 rounded-2xl text-center shadow-lg">
+    <span class="text-3xl text-green-600 font-bold">🎉 Bravo ! Tout est terminé ! 🎉</span>
+    <form method="POST" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" name="next_category" class="bg-purple-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-purple-600 transition-all duration-300">Passer à la catégorie suivante</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="bg-red-100 p-6 rounded-2xl text-center shadow-lg">
+    <span class="text-3xl text-red-600 font-bold">Pas encore ! 😔</span>
+    <p class="mt-2 text-lg text-red-800">Tu n'as atteint que {{ success_percentage|floatformat:0 }}% de succès. Tu dois avoir au moins 80% pour passer !</p>
+    <form method="POST" class="mt-4">
+      {% csrf_token %}
+      <button type="submit" name="next_category" class="bg-gray-500 text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-gray-600 transition-all duration-300">Réessayer ou passer</button>
+    </form>
+  </div>
+  {% endif %}
   {% endif %}
 </div>
 
-<!-- Timer and Speech Script -->
+<!-- Audio Recording and Drawing Script -->
 {% if current_word %}
-  <script>
-    let timeLeft = 60;
-    const timeTakenInput = document.getElementById('time_taken');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let mediaRecorder;
+  let audioChunks = [];
+  let recordingStream;
+  const startTime = Date.now();
 
-    const timer = setInterval(() => {
-      if (timeLeft > 0) {
-        timeLeft--;
-        timeTakenInput.value = 60 - timeLeft;
-      } else {
-        clearInterval(timer);
-      }
-    }, 1000);
-
-    document.getElementById('spelling-form').addEventListener('submit', function() {
-      clearInterval(timer);
+  // Set time taken on form submission
+  const wordForm = document.getElementById('word-form');
+  if (wordForm) {
+    wordForm.addEventListener('submit', function() {
+      const timeTaken = (Date.now() - startTime) / 1000; // Convertir en secondes
+      document.getElementById('time-taken').value = timeTaken;
+      console.log('Time taken:', timeTaken);
     });
+  }
 
-    document.getElementById('speak').addEventListener('click', () => {
+  // Text-to-speech functionality
+  const speakButton = document.getElementById('speak');
+  if (speakButton) {
+    speakButton.addEventListener('click', () => {
       const utterance = new SpeechSynthesisUtterance("{{ current_word.name }}");
       const voices = window.speechSynthesis.getVoices();
-      const frenchVoice = voices.find(voice => voice.lang.includes('fr'));
-      if (frenchVoice) {
-        utterance.voice = frenchVoice;
+      const preferredVoice = voices.find(voice => voice.lang.includes('ar')) || 
+                            voices.find(voice => voice.lang.includes('fr')) || 
+                            voices[0];
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
       }
-      utterance.lang = 'fr-FR';
+      utterance.lang = 'ar-MA';
       window.speechSynthesis.speak(utterance);
     });
+  }
 
-    window.speechSynthesis.onvoiceschanged = () => {
-      const voices = window.speechSynthesis.getVoices();
-      console.log('Voices loaded:', voices);
-    };
-  </script>
+  window.speechSynthesis.onvoiceschanged = () => {
+    const voices = window.speechSynthesis.getVoices();
+    console.log('Voices loaded:', voices);
+  };
+
+  // Audio recording functionality
+  const recordButton = document.getElementById('record-audio');
+  const stopButton = document.getElementById('stop-audio');
+  const statusElement = document.getElementById('recording-status');
+  
+  if (recordButton && stopButton) {
+    recordButton.addEventListener('click', async function() {
+      try {
+        audioChunks = [];
+        recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(recordingStream);
+        
+        mediaRecorder.start();
+        
+        recordButton.disabled = true;
+        stopButton.disabled = false;
+        if (statusElement) {
+          statusElement.textContent = 'Enregistrement en cours...';
+        }
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = processRecording;
+      } catch (error) {
+        console.error('Erreur lors de l\'enregistrement:', error);
+        if (statusElement) {
+          statusElement.textContent = 'Erreur: Impossible d\'accéder au microphone';
+        }
+      }
+    });
+
+    stopButton.addEventListener('click', function() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        recordingStream.getTracks().forEach(track => track.stop());
+        recordButton.disabled = false;
+        stopButton.disabled = true;
+      }
+    });
+  }
+
+  function processRecording() {
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const audioURL = URL.createObjectURL(audioBlob);
+    const audioElement = document.getElementById('audio-playback');
+    if (audioElement) {
+      audioElement.src = audioURL;
+      audioElement.classList.remove('hidden');
+    }
+
+    // Create a file from the blob
+    const audioFile = new File([audioBlob], "recording.wav", { type: 'audio/wav' });
+    
+    // Attach the file to the form
+    const audioData = document.getElementById('audio-data');
+    if (audioData) {
+      // Create a DataTransfer object to hold our file
+      try {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(audioFile);
+        audioData.files = dataTransfer.files;
+        console.log('Audio file attached:', audioData.files[0]);
+      } catch (e) {
+        console.error('Error attaching audio file:', e);
+        // Fallback for browsers that don't support DataTransfer
+        // We'll need to handle this server-side by processing the Blob directly
+        audioData.value = audioURL;
+      }
+    }
+  }
+
+  // Drawing functionality for "dessin" type
+  const canvas = document.getElementById('drawing-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    // Set canvas size
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    // Set background to white
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Set drawing properties
+    ctx.strokeStyle = 'black'; // Pinceau noir
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+
+    // Start drawing
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    // Draw while moving
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDrawing) {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      }
+    });
+
+    // Stop drawing
+    canvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+      ctx.closePath();
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      isDrawing = false;
+    });
+
+    // Clear canvas
+    const clearButton = document.getElementById('clear-canvas');
+    if (clearButton) {
+      clearButton.addEventListener('click', () => {
+        ctx.fillStyle = 'white'; // Réinitialiser le fond en blanc
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      });
+    }
+
+    // Save drawing as image
+    const saveButton = document.getElementById('save-drawing');
+    const drawingData = document.getElementById('drawing-data');
+    if (saveButton && drawingData) {
+      saveButton.addEventListener('click', () => {
+        const imageData = canvas.toDataURL('image/png');
+        drawingData.value = imageData;
+        alert('Dessin enregistré !');
+      });
+    }
+  }
+});
+</script>
 {% endif %}
 {% endblock %}
